@@ -7,15 +7,14 @@
 
 import Foundation
 import XCTest
-@testable import ConfigurationCodable
-
+@testable import ContextCodable
 
 final class EncodableTests: XCTestCase {
     func testSimple() throws {
         let expected = randomObject()
         let encodable = expected.enc
         let encoded = try JSONEncoder().encode(encodable,
-                                               configuration: expected.config)
+                                               context: expected.context)
         let decoded = try JSONDecoder().decode(DecObj.self, from: encoded)
         XCTAssertEqual(decoded, expected)
     }
@@ -35,7 +34,7 @@ final class EncodableTests: XCTestCase {
                 defer { expect.fulfill() }
                 do {
                     let encoded = try encoder.encode(expected.enc,
-                                                     configuration: expected.config)
+                                                     context: expected.context)
                     let decoded = try decoder.decode(DecObj.self, from: encoded)
                     XCTAssertEqual(decoded, expected)
                 } catch {
@@ -64,9 +63,8 @@ final class EncodableTests: XCTestCase {
     }
 }
 
-private struct EncObj: ConfigurationCodable.EncodableWithConfiguration {
-    typealias EncodingConfiguration =
-        (date: Date, int: Int, string: String, double: Double)
+private struct EncObj: ContextEncodable {
+    typealias EncodingContext = (date: Date, int: Int, string: String, double: Double)
     
     let int: EncIntAndStr
     let array: EncArrayAndDate
@@ -89,21 +87,21 @@ private struct EncObj: ConfigurationCodable.EncodableWithConfiguration {
         self.string = string
     }
     
-    func encode(to encoder: Encoder, configuration: EncodingConfiguration) throws {
+    func encode(to encoder: Encoder, context: EncodingContext) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(int, forKey: .int,
-                             configuration: configuration.string)
+                             context: context.string)
         try container.encode(array, forKey: .array,
-                             configuration: configuration.date)
+                             context: context.date)
         try container.encode(null, forKey: .null,
-                             configuration: configuration.double)
-        try container.encode(configuration.int, forKey: .simpleInt)
+                             context: context.double)
+        try container.encode(context.int, forKey: .simpleInt)
         try container.encode(string, forKey: .string)
     }
 }
 
-private struct EncIntAndStr: ConfigurationCodable.EncodableWithConfiguration {
-    typealias EncodingConfiguration = String
+private struct EncIntAndStr: ContextEncodable {
+    typealias EncodingContext = String
     
     let int: Int
     
@@ -116,15 +114,15 @@ private struct EncIntAndStr: ConfigurationCodable.EncodableWithConfiguration {
         self.int = int
     }
     
-    func encode(to encoder: Encoder, configuration: String) throws {
+    func encode(to encoder: Encoder, context: EncodingContext) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(int, forKey: .int)
-        try container.encode(configuration, forKey: .string)
+        try container.encode(context, forKey: .string)
     }
 }
 
-private struct EncArrayAndDate: ConfigurationCodable.EncodableWithConfiguration {
-    typealias EncodingConfiguration = Date
+private struct EncArrayAndDate: ContextEncodable {
+    typealias EncodingContext = Date
     
     let array: Array<Int>
     
@@ -137,20 +135,20 @@ private struct EncArrayAndDate: ConfigurationCodable.EncodableWithConfiguration 
         case date
     }
     
-    func encode(to encoder: Encoder, configuration: Date) throws {
+    func encode(to encoder: Encoder, context: EncodingContext) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(array, forKey: .array)
-        try container.encode(configuration, forKey: .date)
+        try container.encode(context, forKey: .date)
     }
 }
 
-private struct EncNullAndDouble: ConfigurationCodable.EncodableWithConfiguration {
-    typealias EncodingConfiguration = Double
+private struct EncNullAndDouble: ContextEncodable {
+    typealias EncodingContext = Double
         
-    func encode(to encoder: Encoder, configuration: Double) throws {
+    func encode(to encoder: Encoder, context: EncodingContext) throws {
         var container = encoder.unkeyedContainer()
         try container.encodeNil()
-        try container.encode(configuration)
+        try container.encode(context)
     }
 }
 
@@ -174,9 +172,9 @@ private struct DecObj: Equatable, Decodable {
     var enc: EncObj { EncObj(int: int.enc, array: array.enc,
                              null: null.enc, string: string) }
     
-    var config: EncObj.EncodingConfiguration {
-        (date: array.config, int: simpleInt,
-         string: int.config, double: null.config)
+    var context: EncObj.EncodingContext {
+        (date: array.context, int: simpleInt,
+         string: int.context, double: null.context)
     }
 }
 
@@ -190,7 +188,7 @@ private struct DecIntAndStr: Equatable, Decodable {
     }
     
     var enc: EncIntAndStr { EncIntAndStr(int: int) }
-    var config: EncIntAndStr.EncodingConfiguration { string }
+    var context: EncIntAndStr.EncodingContext { string }
 }
 
 private struct DecArrayAndDate: Equatable, Decodable {
@@ -203,7 +201,7 @@ private struct DecArrayAndDate: Equatable, Decodable {
     }
     
     var enc: EncArrayAndDate { EncArrayAndDate(array: array) }
-    var config: EncArrayAndDate.EncodingConfiguration { date }
+    var context: EncArrayAndDate.EncodingContext { date }
 }
 
 private struct DecNullAndDouble: Equatable, Decodable {
@@ -221,5 +219,5 @@ private struct DecNullAndDouble: Equatable, Decodable {
     }
     
     var enc: EncNullAndDouble { EncNullAndDouble() }
-    var config: EncNullAndDouble.EncodingConfiguration { double }
+    var context: EncNullAndDouble.EncodingContext { double }
 }

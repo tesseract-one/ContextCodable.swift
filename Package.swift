@@ -4,20 +4,20 @@
 import PackageDescription
 
 let package = Package(
-    name: "ConfigurationCodable",
+    name: "ContextCodable",
     platforms: [.macOS(.v10_10), .iOS(.v9), .tvOS(.v9), .watchOS(.v2)],
     products: [
         .library(
-            name: "ConfigurationCodable",
-            targets: ["ConfigurationCodable"])
+            name: "ContextCodable",
+            targets: ["ContextCodable"])
     ],
     dependencies: [],
     targets: [
         .target(
-            name: "ConfigurationCodable",
+            name: "ContextCodable",
             dependencies: []),
         .testTarget(
-            name: "ConfigurationCodableTests",
-            dependencies: ["ConfigurationCodable"])
+            name: "ContextCodableTests",
+            dependencies: ["ContextCodable"])
     ]
 )

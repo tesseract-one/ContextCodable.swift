@@ -7,8 +7,7 @@
 
 import Foundation
 import XCTest
-@testable import ConfigurationCodable
-
+@testable import ContextCodable
 
 final class DecodableTests: XCTestCase {
     func testSimple() throws {
@@ -17,7 +16,7 @@ final class DecodableTests: XCTestCase {
         let decoder = JSONDecoder()
         let decoded = try decoder.decode(Obj.self,
                                          from: encoded,
-                                         configuration: expected.config)
+                                         context: expected.context)
         XCTAssertEqual(decoded, expected)
     }
     
@@ -42,7 +41,7 @@ final class DecodableTests: XCTestCase {
                 do {
                     let decoded = try decoder.decode(Obj.self,
                                                      from: data,
-                                                     configuration: expected.config)
+                                                     context: expected.context)
                     XCTAssertEqual(decoded, expected)
                 } catch {
                     XCTFail("error: \(error)")
@@ -71,10 +70,9 @@ final class DecodableTests: XCTestCase {
 }
 
 private struct Obj:
-    Equatable, Encodable, ConfigurationCodable.DecodableWithConfiguration
+    Equatable, Encodable, ContextDecodable
 {
-    typealias DecodingConfiguration =
-        (date: Date, int: Int, string: String, double: Double)
+    typealias DecodingContext = (date: Date, int: Int, string: String, double: Double)
     
     let intAndStr: IntAndStr
     let arrayAndDate: ArrayAndDate
@@ -99,18 +97,18 @@ private struct Obj:
         self.string = string
     }
     
-    init(from decoder: Decoder, configuration: DecodingConfiguration) throws {
+    init(from decoder: Decoder, context: DecodingContext) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         intAndStr = try container.decode(IntAndStr.self,
                                          forKey: .int,
-                                         configuration: configuration.string)
+                                         context: context.string)
         arrayAndDate = try container.decode(ArrayAndDate.self,
                                             forKey: .array,
-                                            configuration: configuration.date)
+                                            context: context.date)
         nullAndDouble = try container.decode(NullAndDouble.self,
                                              forKey: .null,
-                                             configuration: configuration.double)
-        int = configuration.int
+                                             context: context.double)
+        int = context.int
         string = try container.decode(String.self, forKey: .string)
     }
     
@@ -122,16 +120,16 @@ private struct Obj:
         try container.encode(string, forKey: .string)
     }
     
-    var config: DecodingConfiguration {
+    var context: DecodingContext {
         (date: arrayAndDate.date, int: int,
          string: intAndStr.string, double: nullAndDouble.double)
     }
 }
 
 private struct IntAndStr:
-    Equatable, Encodable, ConfigurationCodable.DecodableWithConfiguration
+    Equatable, Encodable, ContextDecodable
 {
-    typealias DecodingConfiguration = String
+    typealias DecodingContext = String
     
     let int: Int
     let string: String
@@ -141,9 +139,9 @@ private struct IntAndStr:
         self.string = string
     }
     
-    init(from decoder: Decoder, configuration: String) throws {
+    init(from decoder: Decoder, context: DecodingContext) throws {
         int = try Int(from: decoder)
-        string = configuration
+        string = context
     }
     
     func encode(to encoder: Encoder) throws {
@@ -152,9 +150,9 @@ private struct IntAndStr:
 }
 
 private struct ArrayAndDate:
-    Equatable, Encodable, ConfigurationCodable.DecodableWithConfiguration
+    Equatable, Encodable, ContextDecodable
 {
-    typealias DecodingConfiguration = Date
+    typealias DecodingContext = Date
     
     let array: Array<Int>
     let date: Date
@@ -164,9 +162,9 @@ private struct ArrayAndDate:
         self.date = date
     }
     
-    init(from decoder: Decoder, configuration: Date) throws {
+    init(from decoder: Decoder, context: DecodingContext) throws {
         array = try Array<Int>(from: decoder)
-        date = configuration
+        date = context
     }
     
     func encode(to encoder: Encoder) throws {
@@ -175,9 +173,9 @@ private struct ArrayAndDate:
 }
 
 private struct NullAndDouble:
-    Equatable, Encodable, ConfigurationCodable.DecodableWithConfiguration
+    Equatable, Encodable, ContextDecodable
 {
-    typealias DecodingConfiguration = Double
+    typealias DecodingContext = Double
     
     let double: Double
     
@@ -185,10 +183,10 @@ private struct NullAndDouble:
         self.double = double
     }
     
-    init(from decoder: Decoder, configuration: Double) throws {
+    init(from decoder: Decoder, context: DecodingContext) throws {
         let nl = try decoder.singleValueContainer().decodeNil()
         assert(nl)
-        double = configuration
+        double = context
     }
     
     func encode(to encoder: Encoder) throws {
