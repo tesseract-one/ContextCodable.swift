@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreFoundation
 
 public typealias CodableWithConfiguration =
     DecodableWithConfiguration & EncodableWithConfiguration
@@ -21,37 +22,37 @@ public struct DecodableWrapper<Wrapped: DecodableWithConfiguration>: Decodable {
     
     @inlinable
     public init(from decoder: Decoder) throws {
-        guard let configuration = Self.configuration else {
+        guard let anyconf = Self.configuration() else {
             throw DecodingError.valueNotFound(
                 Wrapped.DecodingConfiguration.self,
                 DecodingError.Context(codingPath: decoder.codingPath,
                                       debugDescription: "Configuration is empty")
             )
         }
-        value = try Wrapped(from: decoder, configuration: configuration)
-    }
-    
-    @inlinable
-    public static func set(configuration: Wrapped.DecodingConfiguration) {
-        Thread.current.threadDictionary[threadLocalKey] = configuration
-    }
-    
-    @inlinable
-    public static var configuration: Wrapped.DecodingConfiguration? {
-        defer { clear() }
-        guard let conf = Thread.current.threadDictionary[threadLocalKey] else {
-            return nil
+        guard let conf = anyconf as? Wrapped.DecodingConfiguration else {
+            let error = "Configuration has different type \(type(of: anyconf))"
+            throw DecodingError.typeMismatch(
+                Wrapped.DecodingConfiguration.self,
+                DecodingError.Context(
+                    codingPath: decoder.codingPath,
+                    debugDescription: error
+                )
+            )
         }
-        return conf as? Wrapped.DecodingConfiguration
+        value = try Wrapped(from: decoder, configuration: conf)
     }
     
-    @inlinable
-    public static func clear() {
-        Thread.current.threadDictionary.removeObject(forKey: threadLocalKey)
+    public static func set(configuration: Wrapped.DecodingConfiguration) {
+        DecodableThreadLocalKey.set(value: configuration)
     }
     
-    @inlinable
-    public static var threadLocalKey: String { "__DecodableConfigurationThreadLocalKey__" }
+    // One time call. Will remove configuration from ThreadLocal
+    // Any because body is unknown (try cast it)
+    public static func configuration() -> Any? {
+        DecodableThreadLocalKey.replace(with: nil)
+    }
+    
+    public static var threadLocalKey: ThreadLocal<Any> { DecodableThreadLocalKey }
 }
 
 public extension JSONDecoder {
@@ -91,3 +92,5 @@ public extension KeyedDecodingContainer {
         return try decodeIfPresent(DecodableWrapper<T>.self, forKey: key)?.value
     }
 }
+
+private let DecodableThreadLocalKey = ThreadLocal<Any>()
