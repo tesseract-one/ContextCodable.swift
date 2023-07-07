@@ -40,19 +40,29 @@ public extension JSONEncoder {
 
 public extension UnkeyedEncodingContainer {
     @inlinable
-    mutating func encode<T>(
-        _ t: T, configuration: T.EncodingConfiguration
-    ) throws where T: EncodableWithConfiguration {
-        try encode(EncodableWrapper(t, configuration: configuration))
+    mutating func encode<T: EncodableWithConfiguration>(
+        _ value: T, configuration: T.EncodingConfiguration
+    ) throws {
+        try encode(EncodableWrapper(value, configuration: configuration))
     }
 }
 
 public extension KeyedEncodingContainer {
     @inlinable
-    mutating func encode<T>(
-        _ t: T, forKey key: Key, configuration: T.EncodingConfiguration
-    ) throws where T: EncodableWithConfiguration {
-        try encode(EncodableWrapper(t, configuration: configuration),
+    mutating func encode<T: EncodableWithConfiguration>(
+        _ value: T, forKey key: Key, configuration: T.EncodingConfiguration
+    ) throws {
+        try encode(EncodableWrapper(value, configuration: configuration),
                    forKey: key)
+    }
+    
+    @inlinable
+    mutating func encodeIfPresent<T: EncodableWithConfiguration>(
+        _ value: T?, forKey key: Key, configuration: T.EncodingConfiguration
+    ) throws {
+        try encodeIfPresent(
+            value.map { EncodableWrapper($0, configuration: configuration) },
+            forKey: key
+        )
     }
 }
