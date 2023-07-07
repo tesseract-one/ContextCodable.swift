@@ -4,7 +4,7 @@ Pod::Spec.new do |s|
   s.summary          = 'Backport of CodableWithConfiguration to old OS versions and Linux'
 
   s.description      = <<-DESC
-  CodableWithConfiguration ported to older versions of OSes and Linux/Windows/Android
+  CodableWithConfiguration ported to older versions of Apple operating systems and Linux
                        DESC
 
   s.homepage         = 'https://github.com/tesseract-one/ConfigurationCodable.swift'
