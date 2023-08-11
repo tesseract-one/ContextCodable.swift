@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'ContextCodable.swift'
-  s.version          = '0.1.0'
+  s.version          = '999.99.9'
   s.summary          = 'Backport of CodableWithConfiguration to old OS versions and Linux'
 
   s.description      = <<-DESC
@@ -13,19 +13,16 @@ Pod::Spec.new do |s|
   s.author           = { 'Tesseract Systems, Inc.' => 'info@tesseract.one' }
   s.source           = { :git => 'https://github.com/tesseract-one/ContextCodable.swift.git', :tag => s.version.to_s }
 
-  s.ios.deployment_target = '11.0'
-  s.osx.deployment_target = '10.12'
-  s.tvos.deployment_target = '11.0'
-  s.watchos.deployment_target = '4.0'
-  
-  s.swift_version = '5.4'
+  s.swift_version    = '5.4'
+  s.module_name      = 'ContextCodable'
 
-  s.module_name = 'ContextCodable'
+  base_platforms     = { :ios => '11.0', :osx => '10.13', :tvos => '11.0' }
+  s.platforms        = base_platforms.merge({ :watchos => '6.0' })
+
+  s.source_files     = 'Sources/ContextCodable/**/*.swift'
   
-  s.source_files = 'Sources/ContextCodable/**/*.swift'
-  
-  s.test_spec 'Tests' do |test_spec|
-    test_spec.platforms = {:ios => '11.0', :osx => '10.12', :tvos => '11.0'}
-    test_spec.source_files = 'Tests/ContextCodableTests/*.swift'
+  s.test_spec 'Tests' do |ts|
+    ts.platforms = base_platforms
+    ts.source_files = 'Tests/ContextCodableTests/*.swift'
   end
 end

@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "ContextCodable",
-    platforms: [.macOS(.v10_10), .iOS(.v9), .tvOS(.v9), .watchOS(.v2)],
+    platforms: [.macOS(.v10_13), .iOS(.v11), .tvOS(.v11), .watchOS(.v6)],
     products: [
         .library(
             name: "ContextCodable",
